@@ -20,19 +20,19 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.10.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
-  <meta name="description" content="在提到 React Agent 设计模式，我们可以先了解什么是 AI Agent？以及现在的 AI Agent 都有哪些设计思路？ 什么是 AI Agent ?在学术界和工业界对 AI Agent 具有不同的定义：  学术界定义：能够感知环境、进行决策并执行动作的智能实体。  OpenAI 的定义：以大语言模型为大脑驱动的系统，具备自主理解、感知、规划、记忆和使用工具的能力，能够自动化执行完成复杂">
+  <meta name="description" content="在提到 React Agent 设计模式，我们可以先了解什么是 AI Agent？以及现在的 AI Agent 都有哪些设计思路？  什么是 AI Agent ?在学术界和工业界对 AI Agent 具有不同的定义：  学术界定义：能够感知环境、进行决策并执行动作的智能实体。  OpenAI 的定义：以大语言模型为大脑驱动的系统，具备自主理解、感知、规划、记忆和使用工具的能力，能够自动化执行完成复">
 <meta property="og:type" content="website">
 <meta property="og:title" content="一文吃透 ReAct Agent：AI 任务规划与执行的闭环设计思路">
 <meta property="og:url" content="http://example.com/2025/11/12/%E4%B8%80%E6%96%87%E5%90%83%E9%80%8F-ReAct-Agent%EF%BC%9AAI-%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E7%9A%84%E9%97%AD%E7%8E%AF%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/index.html">
 <meta property="og:site_name">
-<meta property="og:description" content="在提到 React Agent 设计模式，我们可以先了解什么是 AI Agent？以及现在的 AI Agent 都有哪些设计思路？ 什么是 AI Agent ?在学术界和工业界对 AI Agent 具有不同的定义：  学术界定义：能够感知环境、进行决策并执行动作的智能实体。  OpenAI 的定义：以大语言模型为大脑驱动的系统，具备自主理解、感知、规划、记忆和使用工具的能力，能够自动化执行完成复杂">
+<meta property="og:description" content="在提到 React Agent 设计模式，我们可以先了解什么是 AI Agent？以及现在的 AI Agent 都有哪些设计思路？  什么是 AI Agent ?在学术界和工业界对 AI Agent 具有不同的定义：  学术界定义：能够感知环境、进行决策并执行动作的智能实体。  OpenAI 的定义：以大语言模型为大脑驱动的系统，具备自主理解、感知、规划、记忆和使用工具的能力，能够自动化执行完成复">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2025/11/12/%E4%B8%80%E6%96%87%E5%90%83%E9%80%8F-ReAct-Agent%EF%BC%9AAI-%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E7%9A%84%E9%97%AD%E7%8E%AF%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/workflows_vs_agent.webp">
 <meta property="og:image" content="http://example.com/2025/11/12/%E4%B8%80%E6%96%87%E5%90%83%E9%80%8F-ReAct-Agent%EF%BC%9AAI-%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E7%9A%84%E9%97%AD%E7%8E%AF%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/llms_memory.webp">
 <meta property="og:image" content="http://example.com/2025/11/12/%E4%B8%80%E6%96%87%E5%90%83%E9%80%8F-ReAct-Agent%EF%BC%9AAI-%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E7%9A%84%E9%97%AD%E7%8E%AF%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/short_and_long_memory.webp">
 <meta property="og:image" content="http://example.com/2025/11/12/%E4%B8%80%E6%96%87%E5%90%83%E9%80%8F-ReAct-Agent%EF%BC%9AAI-%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E7%9A%84%E9%97%AD%E7%8E%AF%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/tool_calling.webp">
 <meta property="article:published_time" content="2025-11-11T16:34:49.000Z">
-<meta property="article:modified_time" content="2025-11-11T17:24:25.746Z">
+<meta property="article:modified_time" content="2025-11-15T03:49:50.927Z">
 <meta property="article:author" content="看繁星">
 <meta property="article:tag" content="AI Agent">
 <meta property="article:tag" content="ReAct Agent">
@@ -211,9 +211,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2025-11-12 00:34:49 / 修改时间：01:24:25" itemprop="dateCreated datePublished" datetime="2025-11-12T00:34:49+08:00">2025-11-12</time>
+      <time title="创建时间：2025-11-12 00:34:49" itemprop="dateCreated datePublished" datetime="2025-11-12T00:34:49+08:00">2025-11-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-11-15 11:49:50" itemprop="dateModified" datetime="2025-11-15T11:49:50+08:00">2025-11-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -251,6 +257,7 @@
     
     <div class="post-body" itemprop="articleBody">
         <p>在提到 React Agent 设计模式，我们可以先了解什么是 AI Agent？以及现在的 AI Agent 都有哪些设计思路？</p>
+<hr>
 <h1 id="什么是-AI-Agent"><a href="#什么是-AI-Agent" class="headerlink" title="什么是 AI Agent ?"></a>什么是 AI Agent ?</h1><p>在学术界和工业界对 AI Agent 具有不同的定义：</p>
 <ul>
 <li><p>学术界定义：能够<strong>感知环境</strong>、<strong>进行决策</strong>并<strong>执行动作</strong>的智能实体。</p>
@@ -262,6 +269,7 @@
 <p><strong>理解自然语言</strong>、<strong>记忆能力</strong>、<strong>任务规划</strong>、<strong>任务执行、环境感知</strong>。</p>
 <span id="more"></span>
 
+<hr>
 <h2 id="Workflows-与-Agent-的区别"><a href="#Workflows-与-Agent-的区别" class="headerlink" title="Workflows 与 Agent 的区别"></a>Workflows 与 Agent 的区别</h2><img src="/2025/11/12/%E4%B8%80%E6%96%87%E5%90%83%E9%80%8F-ReAct-Agent%EF%BC%9AAI-%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E7%9A%84%E9%97%AD%E7%8E%AF%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/workflows_vs_agent.webp" class="">
 
 <ul>
@@ -330,6 +338,7 @@
 </ul>
 <p>这个例子没有复杂的系统名词，却能直观体现：Agent 不用预设 “超时 &#x2F; 未超时”“计费有问题 &#x2F; 没问题” 的固定分支，而是通过 “问关键信息→跨工具查数据→按结果做决策” 的动态流程，自然解决用户的混合诉求，这正是它比固定 Workflow 灵活的核心优势。</p>
 </blockquote>
+<hr>
 <h2 id="LLMs-是一只只有-6s-记忆的鱼"><a href="#LLMs-是一只只有-6s-记忆的鱼" class="headerlink" title="LLMs 是一只只有 6s 记忆的鱼"></a>LLMs 是一只只有 6s 记忆的鱼</h2><p>LLMs 本身具备强大的自然语言处理能力，但与它本身没有记忆能力，当你向它提出一个问题后，下次再提问相关问题它就立马“忘记了”！</p>
 <img src="/2025/11/12/%E4%B8%80%E6%96%87%E5%90%83%E9%80%8F-ReAct-Agent%EF%BC%9AAI-%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E7%9A%84%E9%97%AD%E7%8E%AF%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/llms_memory.webp" class="">
 
@@ -340,6 +349,7 @@
 <img src="/2025/11/12/%E4%B8%80%E6%96%87%E5%90%83%E9%80%8F-ReAct-Agent%EF%BC%9AAI-%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E7%9A%84%E9%97%AD%E7%8E%AF%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/short_and_long_memory.webp" class="">
 
 <p>与短期记忆对应而言的便是长期记忆。LLM 的上下文窗口是有限的，但历史记录中并不是所有的信息都是需要大模型进行短期记忆的，所以这会造成对 LLM 上下文窗口的浪费。所以我们可以把需要长期记忆的历史记录存储到数据库中，当 LLM 收到提问时，便会向数据库中只检索对该问题的<strong>相关内容</strong>，并作为提示词填充到自己的上下文窗口。</p>
+<hr>
 <h2 id="LLMs-的任务规划"><a href="#LLMs-的任务规划" class="headerlink" title="LLMs 的任务规划"></a><strong>LLMs 的任务规划</strong></h2><p>就像人的大脑一样，当接收到复杂任务时，不是直接给出答案，而是将复杂任务推理拆分为一个个具体可执行的任务串联起来去解决问题。</p>
 <p>目前实现 LLM 进行准确的任务规划能力有两种实现思想模式。</p>
 <h3 id=""><a href="#" class="headerlink" title=""></a></h3><ol>
@@ -370,8 +380,7 @@
 <blockquote>
 <ol>
 <li><p><strong>定义接口结构体</strong>：用 Go 的 struct 定义请求体（Request）和响应体（Response），例如：go运行</p>
- <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">type ExchangeRequest struct &#123;    UserID  int64 `json:&quot;user_id&quot; binding:&quot;required&quot;`    GoodsID int64 `json:&quot;goods_id&quot; binding:&quot;required&quot;`&#125;</span><br></pre></td></tr></table></figure>
-<p> Go</p>
+ <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> ExchangeRequest <span class="keyword">struct</span> &#123;    UserID  <span class="type">int64</span> <span class="string">`json:&quot;user_id&quot; binding:&quot;required&quot;`</span>    GoodsID <span class="type">int64</span> <span class="string">`json:&quot;goods_id&quot; binding:&quot;required&quot;`</span>&#125;</span><br></pre></td></tr></table></figure>
 </li>
 <li><p><strong>参数校验</strong>：用 gin 框架的 binding 验证请求参数，同时校验用户 token 有效性（调用 auth middleware）。</p>
 </li>
@@ -398,7 +407,8 @@
 </ol>
 </blockquote>
 <p>这两种模式都只能通过大模型微调，或提示词来保证。</p>
-<h2 id="LLMs-的任务执行"><a href="#LLMs-的任务执行" class="headerlink" title="LLMs 的任务执行"></a>LLMs 的任务执行</h2><p>这要引入一个概念 **工具（Tool）。**LLM 可以根据需要选择使用合适的工具去执行任务。</p>
+<hr>
+<h2 id="LLMs-的任务执行"><a href="#LLMs-的任务执行" class="headerlink" title="LLMs 的任务执行"></a>LLMs 的任务执行</h2><p>这要引入一个概念 <strong>工具（Tool）。</strong> LLM 可以根据需要选择使用合适的工具去执行任务。</p>
 <p>对于工具调用的方式，一般分为两种：</p>
 <ol>
 <li><p>函数调用 （Function Calling）</p>
@@ -413,9 +423,9 @@
 <p>当用户输入 “5乘以3等于多少？”，LLM 会选择 Tool，并生成对应的 JSON 格式字符串，用程序根据字符串判断使用哪个工具以及如何调用。</p>
 <img src="/2025/11/12/%E4%B8%80%E6%96%87%E5%90%83%E9%80%8F-ReAct-Agent%EF%BC%9AAI-%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E7%9A%84%E9%97%AD%E7%8E%AF%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/tool_calling.webp" class=""></blockquote>
 <p>所以，一般来说一个 Tool 需要有两个行为：一是要描述自身的功能，二是要定义执行过程。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">type Tool interface &#123;  Info() ToolInfo  Execute(params map[string]any) any&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Tool <span class="keyword">interface</span> &#123;  Info() ToolInfo  Execute(params <span class="keyword">map</span>[<span class="type">string</span>]any) any&#125;</span><br></pre></td></tr></table></figure>
 
-<p>Go</p>
+
 <p>这些设计思想体现了 Agent 最基本的核心能力，即</p>
 <ul>
 <li><p>如何更好地理解用户意图；</p>
@@ -426,14 +436,17 @@
 </li>
 </ul>
 <p><strong>解决了实现 Agent 核心的各种问题后，我们该如何更好地将这些能力设计与组合，以更好地感知环境？</strong></p>
+<hr>
 <h1 id="ReAct-Agent-设计思想"><a href="#ReAct-Agent-设计思想" class="headerlink" title="ReAct Agent 设计思想"></a>ReAct Agent 设计思想</h1><p>前面我们分别介绍了 AI Agent 的五个核心能力：<strong>理解自然语言</strong>、<strong>记忆能力</strong>、<strong>任务规划</strong>（Self-Ask 和 Chain of Thought）、<strong>任务执行</strong>（工具调用）。</p>
 <p>但这些能力单独存在时，还不足以构成一个真正智能的 Agent。就像人有眼睛、大脑、双手，但如果不协同工作，也做不了什么事。</p>
 <p><strong>ReAct（Reasoning and Acting）设计模式的核心价值，就是把这些能力有机地组合起来，并通过”循环反馈”的方式，让 Agent 具备真正的环境感知和自主解决问题的能力。</strong></p>
+<hr>
 <h2 id="ReAct-如何融合五大核心能力？"><a href="#ReAct-如何融合五大核心能力？" class="headerlink" title="ReAct 如何融合五大核心能力？"></a>ReAct 如何融合五大核心能力？</h2><p>我们用一个实际场景来理解 ReAct 是如何把前面讲的所有能力串起来的：</p>
 <blockquote>
 <p><strong>场景</strong>：用户说：”帮我给用户 12345 发个积分到账通知，他刚兑换了一个 199 元的耳机。”</p>
 </blockquote>
 <p>这个需求看似简单，但实际上涉及多个步骤和不确定性：需要查用户信息、查商品、扣积分、发通知，任何一步出问题都可能导致失败。</p>
+<hr>
 <h3 id="ReAct-的执行循环"><a href="#ReAct-的执行循环" class="headerlink" title="ReAct 的执行循环"></a>ReAct 的执行循环</h3><p>ReAct 通过 <strong>Thought（思考）→ Action（行动）→ Observation（观察）</strong> 三个步骤循环执行，直到任务完成。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">graph TB</span><br><span class="line">    Start[用户输入任务] --&gt; Think1[Thought: 理解意图 + 规划]</span><br><span class="line">    Think1 --&gt; Act1[Action: 选择工具执行]</span><br><span class="line">    Act1 --&gt; Obs1[Observation: 获取执行结果]</span><br><span class="line">    Obs1 --&gt; Memory[更新记忆/上下文]</span><br><span class="line">    Memory --&gt; Check&#123;任务完成?&#125;</span><br><span class="line">    Check --&gt;|否| Think2[Thought: 基于结果重新规划]</span><br><span class="line">    Think2 --&gt; Act2[Action: 继续执行]</span><br><span class="line">    Act2 --&gt; Obs2[Observation: 新结果]</span><br><span class="line">    Obs2 --&gt; Memory</span><br><span class="line">    Check --&gt;|是| End[输出最终答案]</span><br><span class="line"></span><br><span class="line">    style Think1 fill:#fff4e1</span><br><span class="line">    style Think2 fill:#fff4e1</span><br><span class="line">    style Act1 fill:#ffe1f5</span><br><span class="line">    style Act2 fill:#ffe1f5</span><br><span class="line">    style Obs1 fill:#e1ffe1</span><br><span class="line">    style Obs2 fill:#e1ffe1</span><br><span class="line">    style Memory fill:#e1f5ff</span><br></pre></td></tr></table></figure>
 
