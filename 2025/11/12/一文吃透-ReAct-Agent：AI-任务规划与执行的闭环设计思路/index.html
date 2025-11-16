@@ -53,6 +53,8 @@
 
 
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
 
   <noscript>
     <link rel="stylesheet" href="/css/noscript.css">
@@ -142,17 +144,17 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">1</span>
+          <span class="site-state-item-count">2</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-count">2</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">4</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -391,7 +393,10 @@
 <blockquote>
 <ol>
 <li><p><strong>定义接口结构体</strong>：用 Go 的 struct 定义请求体（Request）和响应体（Response），例如：go运行</p>
- <figure class="highlight go" data-language="go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> ExchangeRequest <span class="keyword">struct</span> &#123;    </span><br><span class="line">     UserID  <span class="type">int64</span> <span class="string">`json:&quot;user_id&quot; binding:&quot;required&quot;`</span>    </span><br><span class="line">     GoodsID <span class="type">int64</span> <span class="string">`json:&quot;goods_id&quot; binding:&quot;required&quot;`</span></span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+ <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> ExchangeRequest <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>    
+     UserID  <span class="token builtin">int64</span> <span class="token string">`json:"user_id" binding:"required"`</span>    
+     GoodsID <span class="token builtin">int64</span> <span class="token string">`json:"goods_id" binding:"required"`</span>
+ <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 </li>
 <li><p><strong>参数校验</strong>：用 gin 框架的 binding 验证请求参数，同时校验用户 token 有效性（调用 auth middleware）。</p>
 </li>
@@ -434,7 +439,9 @@
 <p>当用户输入 “5乘以3等于多少？”，LLM 会选择 Tool，并生成对应的 JSON 格式字符串，用程序根据字符串判断使用哪个工具以及如何调用。</p>
 <img src="/2025/11/12/%E4%B8%80%E6%96%87%E5%90%83%E9%80%8F-ReAct-Agent%EF%BC%9AAI-%E4%BB%BB%E5%8A%A1%E8%A7%84%E5%88%92%E4%B8%8E%E6%89%A7%E8%A1%8C%E7%9A%84%E9%97%AD%E7%8E%AF%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/tool_calling.webp" class=""></blockquote>
 <p>所以，一般来说一个 Tool 需要有两个行为：一是要描述自身的功能，二是要定义执行过程。</p>
-<figure class="highlight go" data-language="go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Tool <span class="keyword">interface</span> &#123;</span><br><span class="line">  Info() ToolInfo  Execute(params <span class="keyword">map</span>[<span class="type">string</span>]any) any</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> Tool <span class="token keyword">interface</span> <span class="token punctuation">&#123;</span>
+  <span class="token function">Info</span><span class="token punctuation">(</span><span class="token punctuation">)</span> ToolInfo  <span class="token function">Execute</span><span class="token punctuation">(</span>params <span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span>any<span class="token punctuation">)</span> any
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 
 
 <p>这些设计思想体现了 Agent 最基本的核心能力，即</p>
@@ -481,39 +488,121 @@
 
 <p>让我们看看这个例子中，ReAct 是如何一步步运作的。</p>
 <hr>
-<h3 id="第-1-轮循环"><a href="#第-1-轮循环" class="headerlink" title="第 1 轮循环"></a>第 1 轮循环</h3><h4 id="1-Thought（Self-Ask-CoT-任务规划模式）"><a href="#1-Thought（Self-Ask-CoT-任务规划模式）" class="headerlink" title="1. Thought（Self-Ask + CoT 任务规划模式）"></a>1. Thought（Self-Ask + CoT 任务规划模式）</h4><figure class="highlight plaintext" data-language="plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">【理解自然语言】</span><br><span class="line">用户要&quot;发积分到账通知&quot;，涉及到用户、积分、兑换商品三个要素。</span><br><span class="line"></span><br><span class="line">【Self-Ask 自问】</span><br><span class="line">- 用户 12345 真的兑换成功了吗？我需要先确认兑换记录存在。</span><br><span class="line">- 积分是多少？199 元的耳机对应多少积分？</span><br><span class="line">- 用户的联系方式是什么？手机号？邮箱？</span><br><span class="line"></span><br><span class="line">【Chain of Thought 推理】</span><br><span class="line">第一步应该先查兑换记录，确认这笔兑换是否真实存在。</span><br><span class="line">如果存在，再获取积分数和用户联系方式。</span><br></pre></td></tr></table></figure>
+<h3 id="第-1-轮循环"><a href="#第-1-轮循环" class="headerlink" title="第 1 轮循环"></a>第 1 轮循环</h3><h4 id="1-Thought（Self-Ask-CoT-任务规划模式）"><a href="#1-Thought（Self-Ask-CoT-任务规划模式）" class="headerlink" title="1. Thought（Self-Ask + CoT 任务规划模式）"></a>1. Thought（Self-Ask + CoT 任务规划模式）</h4><pre class="line-numbers language-none"><code class="language-none">【理解自然语言】
+用户要&quot;发积分到账通知&quot;，涉及到用户、积分、兑换商品三个要素。
+
+【Self-Ask 自问】
+- 用户 12345 真的兑换成功了吗？我需要先确认兑换记录存在。
+- 积分是多少？199 元的耳机对应多少积分？
+- 用户的联系方式是什么？手机号？邮箱？
+
+【Chain of Thought 推理】
+第一步应该先查兑换记录，确认这笔兑换是否真实存在。
+如果存在，再获取积分数和用户联系方式。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h4 id="2-Action（任务执行）"><a href="#2-Action（任务执行）" class="headerlink" title="2. Action（任务执行）"></a>2. Action（任务执行）</h4><p>LLM 完成任务规划后，决定是否调用以及调用什么工具来执行任务。<br>一般通过上文讲的两种方式：</p>
 <ol>
 <li>Function Calling</li>
 <li>MCP</li>
 </ol>
-<figure class="highlight json" data-language="json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;tool&quot;</span><span class="punctuation">:</span> <span class="string">&quot;query_exchange_record&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;params&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> <span class="number">12345</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;goods_name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;耳机&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="number">199</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"tool"</span><span class="token operator">:</span> <span class="token string">"query_exchange_record"</span><span class="token punctuation">,</span>
+  <span class="token property">"params"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token property">"user_id"</span><span class="token operator">:</span> <span class="token number">12345</span><span class="token punctuation">,</span>
+    <span class="token property">"goods_name"</span><span class="token operator">:</span> <span class="token string">"耳机"</span><span class="token punctuation">,</span>
+    <span class="token property">"price"</span><span class="token operator">:</span> <span class="token number">199</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
-<h4 id="3-Observation（环境感知）"><a href="#3-Observation（环境感知）" class="headerlink" title="3. Observation（环境感知）"></a>3. Observation（环境感知）</h4><figure class="highlight json" data-language="json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;success&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;data&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;exchange_id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;EX_88776&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> <span class="number">12345</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;goods_name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;索尼 WH-1000XM5 耳机&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;points_used&quot;</span><span class="punctuation">:</span> <span class="number">19900</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;exchange_time&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2025-11-08 10:25:12&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;success&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<h4 id="3-Observation（环境感知）"><a href="#3-Observation（环境感知）" class="headerlink" title="3. Observation（环境感知）"></a>3. Observation（环境感知）</h4><pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"success"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token property">"exchange_id"</span><span class="token operator">:</span> <span class="token string">"EX_88776"</span><span class="token punctuation">,</span>
+    <span class="token property">"user_id"</span><span class="token operator">:</span> <span class="token number">12345</span><span class="token punctuation">,</span>
+    <span class="token property">"goods_name"</span><span class="token operator">:</span> <span class="token string">"索尼 WH-1000XM5 耳机"</span><span class="token punctuation">,</span>
+    <span class="token property">"points_used"</span><span class="token operator">:</span> <span class="token number">19900</span><span class="token punctuation">,</span>
+    <span class="token property">"exchange_time"</span><span class="token operator">:</span> <span class="token string">"2025-11-08 10:25:12"</span><span class="token punctuation">,</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"success"</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p><strong>记忆更新</strong>：Agent 将这条信息存入短期记忆，作为下一步决策的依据。</p>
 <hr>
-<h3 id="第-2-轮循环"><a href="#第-2-轮循环" class="headerlink" title="第 2 轮循环"></a>第 2 轮循环</h3><h4 id="1-Thought（基于上一轮观察结果重新规划）"><a href="#1-Thought（基于上一轮观察结果重新规划）" class="headerlink" title="1.  Thought（基于上一轮观察结果重新规划）"></a>1.  Thought（基于上一轮观察结果重新规划）</h4><figure class="highlight plaintext" data-language="plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">【分析 Observation】</span><br><span class="line">好，兑换记录确实存在，用户花了 19900 积分兑换了耳机。</span><br><span class="line"></span><br><span class="line">【Self-Ask】</span><br><span class="line">- 用户的手机号是什么？需要查用户信息表。</span><br><span class="line">- 通知内容该怎么写？应该包含商品名、积分数、兑换时间。</span><br><span class="line"></span><br><span class="line">【Chain of Thought】</span><br><span class="line">下一步：查用户信息，获取手机号，然后构造通知内容。</span><br></pre></td></tr></table></figure>
+<h3 id="第-2-轮循环"><a href="#第-2-轮循环" class="headerlink" title="第 2 轮循环"></a>第 2 轮循环</h3><h4 id="1-Thought（基于上一轮观察结果重新规划）"><a href="#1-Thought（基于上一轮观察结果重新规划）" class="headerlink" title="1.  Thought（基于上一轮观察结果重新规划）"></a>1.  Thought（基于上一轮观察结果重新规划）</h4><pre class="line-numbers language-none"><code class="language-none">【分析 Observation】
+好，兑换记录确实存在，用户花了 19900 积分兑换了耳机。
 
-<h4 id="2-Action"><a href="#2-Action" class="headerlink" title="2. Action"></a>2. Action</h4><figure class="highlight json" data-language="json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;tool&quot;</span><span class="punctuation">:</span> <span class="string">&quot;query_user_info&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;params&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> <span class="number">12345</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+【Self-Ask】
+- 用户的手机号是什么？需要查用户信息表。
+- 通知内容该怎么写？应该包含商品名、积分数、兑换时间。
 
-<h4 id="3-Observation"><a href="#3-Observation" class="headerlink" title="3. Observation"></a>3. Observation</h4><figure class="highlight json" data-language="json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;success&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;data&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> <span class="number">12345</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;张三&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;phone&quot;</span><span class="punctuation">:</span> <span class="string">&quot;138****5678&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;email&quot;</span><span class="punctuation">:</span> <span class="string">&quot;zhangsan@example.com&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+【Chain of Thought】
+下一步：查用户信息，获取手机号，然后构造通知内容。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="2-Action"><a href="#2-Action" class="headerlink" title="2. Action"></a>2. Action</h4><pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"tool"</span><span class="token operator">:</span> <span class="token string">"query_user_info"</span><span class="token punctuation">,</span>
+  <span class="token property">"params"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token property">"user_id"</span><span class="token operator">:</span> <span class="token number">12345</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="3-Observation"><a href="#3-Observation" class="headerlink" title="3. Observation"></a>3. Observation</h4><pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"success"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token property">"user_id"</span><span class="token operator">:</span> <span class="token number">12345</span><span class="token punctuation">,</span>
+    <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"张三"</span><span class="token punctuation">,</span>
+    <span class="token property">"phone"</span><span class="token operator">:</span> <span class="token string">"138****5678"</span><span class="token punctuation">,</span>
+    <span class="token property">"email"</span><span class="token operator">:</span> <span class="token string">"zhangsan@example.com"</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p><strong>记忆更新</strong>：现在 Agent 知道了用户手机号和姓名。</p>
 <hr>
-<h3 id="第-3-轮循环"><a href="#第-3-轮循环" class="headerlink" title="第 3 轮循环"></a>第 3 轮循环</h3><h4 id="1-Thought"><a href="#1-Thought" class="headerlink" title="1. Thought"></a>1. Thought</h4><figure class="highlight plaintext" data-language="plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">【分析当前状态】</span><br><span class="line">现在我有了：</span><br><span class="line">- 兑换记录：EX_88776，索尼 WH-1000XM5 耳机，19900 积分</span><br><span class="line">- 用户信息：张三，138****5678</span><br><span class="line"></span><br><span class="line">【Self-Ask】</span><br><span class="line">- 通知渠道用什么？短信？App 推送？还是都发？</span><br><span class="line">- 通知内容需要包含哪些关键信息？</span><br><span class="line"></span><br><span class="line">【Chain of Thought】</span><br><span class="line">最后一步：调用消息通知工具，发送积分到账通知。</span><br><span class="line">通知内容应该包含：商品名、积分数、兑换时间，让用户清楚知道扣了多少分。</span><br><span class="line">渠道选短信 + App 推送双保险。</span><br></pre></td></tr></table></figure>
+<h3 id="第-3-轮循环"><a href="#第-3-轮循环" class="headerlink" title="第 3 轮循环"></a>第 3 轮循环</h3><h4 id="1-Thought"><a href="#1-Thought" class="headerlink" title="1. Thought"></a>1. Thought</h4><pre class="line-numbers language-none"><code class="language-none">【分析当前状态】
+现在我有了：
+- 兑换记录：EX_88776，索尼 WH-1000XM5 耳机，19900 积分
+- 用户信息：张三，138****5678
 
-<h4 id="2-Action-1"><a href="#2-Action-1" class="headerlink" title="2. Action"></a>2. Action</h4><figure class="highlight json" data-language="json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;tool&quot;</span><span class="punctuation">:</span> <span class="string">&quot;send_notification&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;params&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> <span class="number">12345</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;points_deduction&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;message&quot;</span><span class="punctuation">:</span> <span class="string">&quot;尊敬的张三，您已成功兑换索尼 WH-1000XM5 耳机，消耗积分 19900 分，兑换时间 2025-11-08 10:25。&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;channels&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;sms&quot;</span><span class="punctuation">,</span> <span class="string">&quot;app_push&quot;</span><span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+【Self-Ask】
+- 通知渠道用什么？短信？App 推送？还是都发？
+- 通知内容需要包含哪些关键信息？
 
-<h4 id="3-Observation-1"><a href="#3-Observation-1" class="headerlink" title="3. Observation"></a>3. Observation</h4><figure class="highlight json" data-language="json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;success&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;send_time&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2025-11-08 14:30:22&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;channels_sent&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;sms&quot;</span><span class="punctuation">,</span> <span class="string">&quot;app_push&quot;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+【Chain of Thought】
+最后一步：调用消息通知工具，发送积分到账通知。
+通知内容应该包含：商品名、积分数、兑换时间，让用户清楚知道扣了多少分。
+渠道选短信 + App 推送双保险。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="2-Action-1"><a href="#2-Action-1" class="headerlink" title="2. Action"></a>2. Action</h4><pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"tool"</span><span class="token operator">:</span> <span class="token string">"send_notification"</span><span class="token punctuation">,</span>
+  <span class="token property">"params"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token property">"user_id"</span><span class="token operator">:</span> <span class="token number">12345</span><span class="token punctuation">,</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"points_deduction"</span><span class="token punctuation">,</span>
+    <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"尊敬的张三，您已成功兑换索尼 WH-1000XM5 耳机，消耗积分 19900 分，兑换时间 2025-11-08 10:25。"</span><span class="token punctuation">,</span>
+    <span class="token property">"channels"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"sms"</span><span class="token punctuation">,</span> <span class="token string">"app_push"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="3-Observation-1"><a href="#3-Observation-1" class="headerlink" title="3. Observation"></a>3. Observation</h4><pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"success"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token property">"send_time"</span><span class="token operator">:</span> <span class="token string">"2025-11-08 14:30:22"</span><span class="token punctuation">,</span>
+  <span class="token property">"channels_sent"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"sms"</span><span class="token punctuation">,</span> <span class="token string">"app_push"</span><span class="token punctuation">]</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <hr>
-<h3 id="第-4-轮循环"><a href="#第-4-轮循环" class="headerlink" title="第 4 轮循环"></a>第 4 轮循环</h3><h4 id="1-Thought-1"><a href="#1-Thought-1" class="headerlink" title="1. Thought"></a>1. Thought</h4><figure class="highlight plaintext" data-language="plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">【检查任务状态】</span><br><span class="line">✅ 查到兑换记录（EX_88776）</span><br><span class="line">✅ 获取用户信息（张三，138****5678）</span><br><span class="line">✅ 发送通知成功（短信 + App 推送）</span><br><span class="line"></span><br><span class="line">任务完成，可以返回结果了。</span><br></pre></td></tr></table></figure>
+<h3 id="第-4-轮循环"><a href="#第-4-轮循环" class="headerlink" title="第 4 轮循环"></a>第 4 轮循环</h3><h4 id="1-Thought-1"><a href="#1-Thought-1" class="headerlink" title="1. Thought"></a>1. Thought</h4><pre class="line-numbers language-none"><code class="language-none">【检查任务状态】
+✅ 查到兑换记录（EX_88776）
+✅ 获取用户信息（张三，138****5678）
+✅ 发送通知成功（短信 + App 推送）
 
-<h4 id="2-Action-2"><a href="#2-Action-2" class="headerlink" title="2. Action"></a>2. Action</h4><figure class="highlight plaintext" data-language="plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Finish（任务结束）</span><br></pre></td></tr></table></figure>
+任务完成，可以返回结果了。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
-<h4 id="3-最终输出"><a href="#3-最终输出" class="headerlink" title="3. 最终输出"></a>3. 最终输出</h4><figure class="highlight plaintext" data-language="plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">已成功为用户 12345（张三）发送积分到账通知：</span><br><span class="line">- 兑换商品：索尼 WH-1000XM5 耳机</span><br><span class="line">- 消耗积分：19900 分</span><br><span class="line">- 兑换时间：2025-11-08 10:25</span><br><span class="line">- 通知渠道：短信 + App 推送</span><br><span class="line">- 发送时间：2025-11-08 14:30</span><br></pre></td></tr></table></figure>
+<h4 id="2-Action-2"><a href="#2-Action-2" class="headerlink" title="2. Action"></a>2. Action</h4><pre class="line-numbers language-none"><code class="language-none">Finish（任务结束）<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="3-最终输出"><a href="#3-最终输出" class="headerlink" title="3. 最终输出"></a>3. 最终输出</h4><pre class="line-numbers language-none"><code class="language-none">已成功为用户 12345（张三）发送积分到账通知：
+- 兑换商品：索尼 WH-1000XM5 耳机
+- 消耗积分：19900 分
+- 兑换时间：2025-11-08 10:25
+- 通知渠道：短信 + App 推送
+- 发送时间：2025-11-08 14:30<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <hr>
 <h2 id="ReAct-的”融合能力”体现在哪？"><a href="#ReAct-的”融合能力”体现在哪？" class="headerlink" title="ReAct 的”融合能力”体现在哪？"></a>ReAct 的”融合能力”体现在哪？</h2><p>从上面的例子可以看到，ReAct 把五大核心能力完美融合：</p>
@@ -552,25 +641,94 @@
 <h2 id="ReAct-的循环反馈增强-Agent-的环境感知力"><a href="#ReAct-的循环反馈增强-Agent-的环境感知力" class="headerlink" title="ReAct 的循环反馈增强 Agent 的环境感知力"></a>ReAct 的循环反馈增强 Agent 的环境感知力</h2><p>如果没有 Observation → Thought 的循环反馈，Agent 只能”盲目执行”预定好的步骤。一旦某一步出问题（比如兑换记录不存在、用户手机号为空），就直接崩溃。</p>
 <p>但 ReAct 的循环机制让 Agent 可以”看到”每一步的执行结果，然后<strong>根据实际情况调整策略</strong>。</p>
 <h3 id="举个例子：出现异常时-ReAct-如何应对"><a href="#举个例子：出现异常时-ReAct-如何应对" class="headerlink" title="举个例子：出现异常时 ReAct 如何应对"></a>举个例子：出现异常时 ReAct 如何应对</h3><p>假设第 1 轮查询兑换记录时，返回了这样的结果：</p>
-<figure class="highlight json" data-language="json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;success&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;error&quot;</span><span class="punctuation">:</span> <span class="string">&quot;未找到用户 12345 在 2025-11-08 兑换 199 元耳机的记录&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"success"</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+  <span class="token property">"error"</span><span class="token operator">:</span> <span class="token string">"未找到用户 12345 在 2025-11-08 兑换 199 元耳机的记录"</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p><strong>传统固定流程</strong>（如 Workflow）会直接报错：”兑换记录不存在，任务失败。”</p>
 <p><strong>ReAct 的处理方式</strong>（进入下一轮循环）：</p>
-<h4 id="Thought"><a href="#Thought" class="headerlink" title="Thought"></a>Thought</h4><figure class="highlight plaintext" data-language="plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">【分析 Observation】</span><br><span class="line">查询失败，可能的原因：</span><br><span class="line">1. 用户还没完成兑换，只是咨询</span><br><span class="line">2. 价格不是 199 元（可能是 299、399）</span><br><span class="line">3. 兑换时间不是今天</span><br><span class="line"></span><br><span class="line">【Self-Ask】</span><br><span class="line">我应该先问用户确认一下，还是扩大查询范围？</span><br><span class="line"></span><br><span class="line">【Chain of Thought】</span><br><span class="line">先扩大查询范围，查最近 3 天内该用户的所有兑换记录，看看有没有耳机相关的。</span><br></pre></td></tr></table></figure>
+<h4 id="Thought"><a href="#Thought" class="headerlink" title="Thought"></a>Thought</h4><pre class="line-numbers language-none"><code class="language-none">【分析 Observation】
+查询失败，可能的原因：
+1. 用户还没完成兑换，只是咨询
+2. 价格不是 199 元（可能是 299、399）
+3. 兑换时间不是今天
 
-<h4 id="Action"><a href="#Action" class="headerlink" title="Action"></a>Action</h4><figure class="highlight json" data-language="json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;tool&quot;</span><span class="punctuation">:</span> <span class="string">&quot;query_exchange_record&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;params&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> <span class="number">12345</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;goods_type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;耳机&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;date_range&quot;</span><span class="punctuation">:</span> <span class="string">&quot;last_3_days&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+【Self-Ask】
+我应该先问用户确认一下，还是扩大查询范围？
 
-<h4 id="Observation"><a href="#Observation" class="headerlink" title="Observation"></a>Observation</h4><figure class="highlight json" data-language="json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;success&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;data&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;exchange_id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;EX_88776&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;goods_name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;索尼 WH-1000XM5 耳机&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="number">299</span><span class="punctuation">,</span>  <span class="comment">// 注意：实际是 299 元，不是 199</span></span><br><span class="line">      <span class="attr">&quot;points_used&quot;</span><span class="punctuation">:</span> <span class="number">29900</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;exchange_time&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2025-11-07 16:20:00&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+【Chain of Thought】
+先扩大查询范围，查最近 3 天内该用户的所有兑换记录，看看有没有耳机相关的。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="Action"><a href="#Action" class="headerlink" title="Action"></a>Action</h4><pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"tool"</span><span class="token operator">:</span> <span class="token string">"query_exchange_record"</span><span class="token punctuation">,</span>
+  <span class="token property">"params"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token property">"user_id"</span><span class="token operator">:</span> <span class="token number">12345</span><span class="token punctuation">,</span>
+    <span class="token property">"goods_type"</span><span class="token operator">:</span> <span class="token string">"耳机"</span><span class="token punctuation">,</span>
+    <span class="token property">"date_range"</span><span class="token operator">:</span> <span class="token string">"last_3_days"</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="Observation"><a href="#Observation" class="headerlink" title="Observation"></a>Observation</h4><pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"success"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">&#123;</span>
+      <span class="token property">"exchange_id"</span><span class="token operator">:</span> <span class="token string">"EX_88776"</span><span class="token punctuation">,</span>
+      <span class="token property">"goods_name"</span><span class="token operator">:</span> <span class="token string">"索尼 WH-1000XM5 耳机"</span><span class="token punctuation">,</span>
+      <span class="token property">"price"</span><span class="token operator">:</span> <span class="token number">299</span><span class="token punctuation">,</span>  <span class="token comment">// 注意：实际是 299 元，不是 199</span>
+      <span class="token property">"points_used"</span><span class="token operator">:</span> <span class="token number">29900</span><span class="token punctuation">,</span>
+      <span class="token property">"exchange_time"</span><span class="token operator">:</span> <span class="token string">"2025-11-07 16:20:00"</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p><strong>这就是”环境感知”的威力</strong>：Agent 发现实际情况与用户描述有出入（299 vs 199），但通过扩大查询范围找到了正确记录，然后继续执行后续步骤，而不是直接失败。</p>
 <hr>
-<h2 id="ReAct-模式的实现要点"><a href="#ReAct-模式的实现要点" class="headerlink" title="ReAct 模式的实现要点"></a>ReAct 模式的实现要点</h2><h3 id="1-Prompt-设计：明确循环格式"><a href="#1-Prompt-设计：明确循环格式" class="headerlink" title="1. Prompt 设计：明确循环格式"></a>1. Prompt 设计：明确循环格式</h3><figure class="highlight plaintext" data-language="plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">你是一个智能客服助手，需要按照以下格式处理任务：</span><br><span class="line"></span><br><span class="line">Thought: [分析当前情况，思考下一步该做什么]</span><br><span class="line">Action: [调用工具，格式为 JSON]</span><br><span class="line">Observation: [工具返回的结果]</span><br><span class="line">... (循环多次)</span><br><span class="line">Thought: 任务已完成</span><br><span class="line">Answer: [最终回复]</span><br><span class="line"></span><br><span class="line">可用工具：</span><br><span class="line">- query_exchange_record: 查询兑换记录</span><br><span class="line">- query_user_info: 查询用户信息</span><br><span class="line">- send_notification: 发送通知</span><br><span class="line"></span><br><span class="line">当前任务：&#123;用户输入&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="ReAct-模式的实现要点"><a href="#ReAct-模式的实现要点" class="headerlink" title="ReAct 模式的实现要点"></a>ReAct 模式的实现要点</h2><h3 id="1-Prompt-设计：明确循环格式"><a href="#1-Prompt-设计：明确循环格式" class="headerlink" title="1. Prompt 设计：明确循环格式"></a>1. Prompt 设计：明确循环格式</h3><pre class="line-numbers language-none"><code class="language-none">你是一个智能客服助手，需要按照以下格式处理任务：
+
+Thought: [分析当前情况，思考下一步该做什么]
+Action: [调用工具，格式为 JSON]
+Observation: [工具返回的结果]
+... (循环多次)
+Thought: 任务已完成
+Answer: [最终回复]
+
+可用工具：
+- query_exchange_record: 查询兑换记录
+- query_user_info: 查询用户信息
+- send_notification: 发送通知
+
+当前任务：&#123;用户输入&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h3 id="2-记忆管理：保留推理链"><a href="#2-记忆管理：保留推理链" class="headerlink" title="2. 记忆管理：保留推理链"></a>2. 记忆管理：保留推理链</h3><p>每一轮的 Thought、Action、Observation 都要追加到上下文，这样后续的 Thought 才能基于完整的历史做判断。</p>
-<figure class="highlight go" data-language="go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> ReActLoop <span class="keyword">struct</span> &#123;</span><br><span class="line">    Steps []Step</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Step <span class="keyword">struct</span> &#123;</span><br><span class="line">    Thought     <span class="type">string</span></span><br><span class="line">    Action      ToolCall</span><br><span class="line">    Observation <span class="type">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 每轮循环后追加</span></span><br><span class="line">loop.Steps = <span class="built_in">append</span>(loop.Steps, Step&#123;</span><br><span class="line">    Thought: thought,</span><br><span class="line">    Action: action,</span><br><span class="line">    Observation: obs,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> ReActLoop <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    Steps <span class="token punctuation">[</span><span class="token punctuation">]</span>Step
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">type</span> Step <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    Thought     <span class="token builtin">string</span>
+    Action      ToolCall
+    Observation <span class="token builtin">string</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// 每轮循环后追加</span>
+loop<span class="token punctuation">.</span>Steps <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>loop<span class="token punctuation">.</span>Steps<span class="token punctuation">,</span> Step<span class="token punctuation">&#123;</span>
+    Thought<span class="token punctuation">:</span> thought<span class="token punctuation">,</span>
+    Action<span class="token punctuation">:</span> action<span class="token punctuation">,</span>
+    Observation<span class="token punctuation">:</span> obs<span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h3 id="3-循环终止：设置最大步数"><a href="#3-循环终止：设置最大步数" class="headerlink" title="3. 循环终止：设置最大步数"></a>3. 循环终止：设置最大步数</h3><p>防止 Agent 陷入死循环（比如不断重试同一个失败的操作）。</p>
-<figure class="highlight go" data-language="go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> MaxSteps = <span class="number">10</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i := <span class="number">0</span>; i &lt; MaxSteps; i++ &#123;</span><br><span class="line">    thought, action := llm.Think(context)</span><br><span class="line">    <span class="keyword">if</span> action == <span class="string">&quot;Finish&quot;</span> &#123;</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    &#125;</span><br><span class="line">    obs := executeTool(action)</span><br><span class="line">    context.AddStep(thought, action, obs)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">const</span> MaxSteps <span class="token operator">=</span> <span class="token number">10</span>
+
+<span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> MaxSteps<span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+    thought<span class="token punctuation">,</span> action <span class="token operator">:=</span> llm<span class="token punctuation">.</span><span class="token function">Think</span><span class="token punctuation">(</span>context<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> action <span class="token operator">==</span> <span class="token string">"Finish"</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">break</span>
+    <span class="token punctuation">&#125;</span>
+    obs <span class="token operator">:=</span> <span class="token function">executeTool</span><span class="token punctuation">(</span>action<span class="token punctuation">)</span>
+    context<span class="token punctuation">.</span><span class="token function">AddStep</span><span class="token punctuation">(</span>thought<span class="token punctuation">,</span> action<span class="token punctuation">,</span> obs<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <hr>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>ReAct 不是一个全新的能力，而是一个<strong>组合框架</strong>，它把前面讲的五大核心能力（理解、记忆、规划、执行、感知）通过 <strong>Thought → Action → Observation 循环</strong> 串联起来。</p>
@@ -596,6 +754,15 @@
 
         
 
+          <div class="post-nav">
+            <div class="post-nav-item">
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/11/16/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%B3%95%E8%AE%BA%20+%20%E5%AE%9E%E6%88%98/" rel="next" title="后端系统设计方法论 + 实战">
+                  后端系统设计方法论 + 实战 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
     </footer>
   </article>
 </div>
